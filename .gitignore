@@ -1,1 +1,4 @@
 /features_matching/*.jpg
+/videos
+*.jpg
+*.mp4
