@@ -162,7 +162,6 @@ def project_image_loop(input_image_path, output_image_path, fov):
 def split_image(input_image_path, output_image_path1, output_image_path2):
     # Open the image
     image = Image.open(input_image_path)
-    print(f"new size: {image.size}")
 
 
     # Get the width and height of the image
