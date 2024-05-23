@@ -164,20 +164,23 @@ def stitch(file_name, debug=False):
 
 
     # M, mask = cv.findHomography(src_pts, dst_pts, cv.RANSAC)
-    # M_skimage = transform.estimate_transform('euclidean', src_array, dst_array)
-    # tr_matrix = M_skimage.params
+    M_skimage = transform.estimate_transform('euclidean', src_array, dst_array)
+    tr_matrix = M_skimage.params
     # # print(f"trans - {tr_matrix[0, 2]}")
-    tr_matrix = np.load("tr_matrix.npy")
+    # tr_matrix = np.load("tr_matrix.npy")
+    print(tr_matrix)
     
     overlapping_width = int(width - tr_matrix[0, 2]) + 1
-    # # tr_matrix[0, 0] = 1
-    # # tr_matrix[0, 1] = 0
-    # # tr_matrix[1, 0] = 0
-    # # tr_matrix[1, 1] = 1
-    # # tr_matrix[1, 2] = 1
+    tr_matrix[0, 0] = 1
+    tr_matrix[0, 1] = 0
+    tr_matrix[1, 0] = 0
+    tr_matrix[1, 1] = 1
+    tr_matrix[1, 2] = 1
     # np.save("tr_matrix.npy", tr_matrix)
     tr_matrix[0, 2] = (img1_full.shape[1] - width + tr_matrix[0, 2])
     # print(tr_matrix)
+    
+ 
     
     print(tr_matrix)
 
@@ -193,9 +196,56 @@ def stitch(file_name, debug=False):
     # print(dst_comp - dst_array)
 
     # M, mask = cv.findHomography(list_kp1, list_kp2, cv.RANSAC,5.0)
+    
+    #cropping the overlapping part of the left
+    # img2_full[:, 0:overlapping_width//2, :] = 0
+    
+    overlap_left = np.array(img2_full[:, 0:overlapping_width, :]).astype(np.float32)
+    overlap_right = np.array(img1_full[:, -overlapping_width:, :]).astype(np.float32)
+    
+    
+    # for i in range (overlapping_width):
+    #     overlap_left[:, i, :] *= (1-i/overlapping_width)
+    #     overlap_right[:, i, :] *= (i/overlapping_width)
+    
+    overlap_blend = ((overlap_left/2+overlap_right/2)).astype(np.uint8)
+    # ob_copy = overlap_blend.copy()
+    # overlap_blend[:, :, 0] = overlap_blend[:, :, 2]
+    # overlap_blend[:, :, 2] = ob_copy[:, :, 0]
+    
+    
+    # plt.imshow(overlap_blend)
+    # plt.show()
+    
+    # overlap_blend = np.zeros_like(overlap_left)
+    # overlap_blend = ((overlap_left + overlap_right)/2).astype(np.uint8)
+    
+    
+    # print(overlap_blend.shape)
+    # print(overlap_blend.max())
 
+    # # plt.imshow(overlap_blend)
+    # # plt.show()
+    img2_full[:, 0:overlapping_width, :] = 0
+    # img1_full[:, -overlapping_width:, :] = overlap_blend
+    # plt.imshow(overlap_left)
+    # plt.show()
+    # plt.imshow(overlap_right)
+    # plt.show()
+    # mid = overlapping_width//2
+    # for i in range(overlapping_width):
+    #     overlap_blend[:, i, :] = 1-i/overlapping_width
+        
+    
+    
+    # img2_full = img2_full.astype(np.float32)
+    # #blending left part of the image on the right
+    # for i in range(overlapping_width):
+    #     img2_full[:, i, :]*=(1-i/overlapping_width)
+    # img2_full = img2_full.astype(np.uint8)
     shape = [2*img2_full.shape[0], 2*img2_full.shape[1], 3]
     final_img = np.zeros(shape)
+    
     final_img[0:img2_full.shape[0], 0:img2_full.shape[1], :] = img2_full
 
 
@@ -203,12 +253,14 @@ def stitch(file_name, debug=False):
     img_mod = np.zeros_like(img2_full)
 
     img1_full = img1_full.astype(np.float32)
-    #blending
+    #blending left part of the image on the right
     for i in range(overlapping_width):
         img1_full[:, i, :]*=(i/overlapping_width)
     img1_full = img1_full.astype(np.uint8)
+
     
     img_mod = cv.warpPerspective(img1_full, tr_matrix, [2*img2_full.shape[1], 2*img2_full.shape[0]] )
+
 
 
     if debug:
@@ -238,7 +290,7 @@ def stitch(file_name, debug=False):
         final_img[:, int(tr_matrix[0, 2])+ i, :] /= (1 + i/overlapping_width)
     final_img = final_img.astype(np.uint8)
 
-    final_img[:, 0:overlapping_width, :] =0
+    # final_img[:, 0:overlapping_width, :] =0
 
 
     x, y, z = np.nonzero(final_img)
@@ -256,7 +308,13 @@ def stitch(file_name, debug=False):
     rgb = rgb.astype(np.uint8)
     crop_width = 50
     if direction == 1:
+        # rgb = np.roll(rgb, overlapping_width//2, axis=1)
+        rgb = np.roll(rgb, rgb.shape[1]//2, axis=1)
+        # middle = rgb.shape[1]//2
+        # blur_overlap = cv.blur(rgb[:, middle-50:middle+50, :], (5, 5))
+        # rgb[:, middle-50:middle+50, :] = blur_overlap
         # rgb = np.roll(rgb, rgb.shape[1]//2, axis=1)
+        
         pass
         # rgb = rgb[:, crop_width:-crop_width, :]
 
