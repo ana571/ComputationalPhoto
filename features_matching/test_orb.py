@@ -168,7 +168,6 @@ def stitch(file_name, debug=False):
     tr_matrix = M_skimage.params
     # # print(f"trans - {tr_matrix[0, 2]}")
     # tr_matrix = np.load("tr_matrix.npy")
-    print(tr_matrix)
     
     overlapping_width = int(width - tr_matrix[0, 2]) + 1
     tr_matrix[0, 0] = 1
@@ -309,7 +308,7 @@ def stitch(file_name, debug=False):
     crop_width = 50
     if direction == 1:
         # rgb = np.roll(rgb, overlapping_width//2, axis=1)
-        rgb = np.roll(rgb, rgb.shape[1]//2, axis=1)
+        # rgb = np.roll(rgb, rgb.shape[1]//2, axis=1)
         # middle = rgb.shape[1]//2
         # blur_overlap = cv.blur(rgb[:, middle-50:middle+50, :], (5, 5))
         # rgb[:, middle-50:middle+50, :] = blur_overlap
@@ -342,7 +341,7 @@ def stitch(file_name, debug=False):
 
 # start = 127
 
-for i in range (100, 101):
+for i in range (22, 23):
 
     print(f"stitching {i}")
     stitch(f"frame_{i}.jpg", False)
