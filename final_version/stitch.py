@@ -8,6 +8,19 @@ from image_cutting_unwrapping import unwrap_and_cut_img
 from skimage.color import rgb2gray, gray2rgb
 from PIL import Image as im 
 import os
+from tqdm import tqdm
+
+def remove_non_empty_directory(directory_path):
+    # Walk the directory tree
+    for root, dirs, files in os.walk(directory_path, topdown=False):
+        # Remove all files
+        for file in files:
+            os.remove(os.path.join(root, file))
+        # Remove all directories
+        for dir in dirs:
+            os.rmdir(os.path.join(root, dir))
+    # Finally, remove the main directory
+    os.rmdir(directory_path)
 
 def openImgGray(file):
     img = cv.imread(file) # trainImage
@@ -75,7 +88,7 @@ def computeMatches(des1, des2, kp1, kp2, height):
 
 
 
-def stitch(filename):
+def stitch(filename, video = False, precomputed = False):
 
     img1_full, img2_full = unwrap_and_cut_img(f"{filename}", 190) # here img1 are open cv images so coordinates are reversed
     # h, w = img1_full.shape
@@ -97,11 +110,12 @@ def stitch(filename):
     src_array = src_array_1
     dst_array = dst_array_1
    
-
-    M_skimage = transform.estimate_transform('euclidean', src_array, dst_array)
-    tr_matrix = M_skimage.params
+    if precomputed:
+        tr_matrix = np.load("tr_matrix.npy")
+    else:
+        M_skimage = transform.estimate_transform('euclidean', src_array, dst_array)
+        tr_matrix = M_skimage.params
     # # print(f"trans - {tr_matrix[0, 2]}")
-    # tr_matrix = np.load("tr_matrix.npy")
     
     overlapping_width = int(width - tr_matrix[0, 2]) + 1
     tr_matrix[0, 0] = 1
@@ -159,6 +173,9 @@ def stitch(filename):
 
 
     final_img = final_img[xl:xr+1, yl:yr+1, :]
+    
+    if final_img.shape[0] < img1_full.shape[0] or final_img.shape[1] < img1_full.shape[1]: return
+    
 
     rgb = np.array(final_img)
     # rgb[:, :, 0] = final_img[:, :, 2]
@@ -166,17 +183,94 @@ def stitch(filename):
 
     rgb = rgb.astype(np.uint8)
     name, ext = os.path.splitext(os.path.basename(filename))
-    if not os.path.exists("./stitched"):
-        os.mkdir("stitched")
+    if video:
+        if not os.path.exists("./video"):
+            os.mkdir("video")
+        im.fromarray(rgb).save(f"./video/{name}.jpg")
+        
+    else:
+        if not os.path.exists("./stitched"):
+            os.mkdir("stitched")
+        im.fromarray(rgb).save(f"./stitched/{name}_stitched.jpg")
 
 
-    im.fromarray(rgb).save(f"./stitched/{name}_stitched.jpg")
 
 
 arg1 = sys.argv[1]
+arg2 = sys.argv[1]
 
-for i in range(1, len(sys.argv)):
-    stitch(sys.argv[i])
+precomputed = False
+
+if arg1 == "-p" or arg1 == "--precomputed":
+    precomputed = True
+    arg2 = sys.argv[2]
+
+
+
+if arg2 != "-v" and arg2 != "--video":
+    start = 1
+    if precomputed: start = 2
+    for i in range(start, len(sys.argv)):
+        if os.path.isdir(sys.argv[i]): continue
+        stitch(sys.argv[i], precomputed=precomputed)
+        
+else:
+    video_dir = "./video"
+    remove_non_empty_directory(video_dir)
+    start = 2
+    if precomputed: start = 3
+    video_path = sys.argv[start]
+    video_capture = cv.VideoCapture(video_path)
+    frames_dir = "./frames"
+    if os.path.exists(frames_dir): 
+        remove_non_empty_directory(frames_dir)
+    os.mkdir(frames_dir)
+    
+    # Initialize a variable to count frames
+    frame_count = 0
+
+    print("extracting frames")
+    # # Loop through each frame in the video
+    while True:
+        # Read the next frame
+        ret, frame = video_capture.read()
+        
+        # If there are no more frames, break the loop
+        if not ret:
+            break
+        
+        # Save the frame as an image
+        cv.imwrite(f"./{frames_dir}/frame_{frame_count}.jpg", frame)
+        
+        # Increment the frame count
+        frame_count += 1
+
+    # Release the video capture object
+    video_capture.release()
+
+        
+        
+    print("stitching frames")
+
+    for file in tqdm(os.listdir(frames_dir)):
+        path = os.path.join(frames_dir, file)
+        # print(path)
+        try:
+            stitch(path, video=True, precomputed=precomputed)
+        except:
+            pass
+        finally:
+            os.remove(path)
+    
+    print("mounting video")
+    os.system(f'cd {video_dir} && ffmpeg -framerate 30 -i frame_%d.jpg -vf "scale=trunc(iw/2)*2:trunc(ih/2)*2" stitched_video.mp4')
+    remove_non_empty_directory(frames_dir)
+    for video_file in os.listdir(video_dir):
+        path = os.path.join(video_dir, video_file)
+        if not path.endswith(".mp4"):
+            os.remove(path)
+        
+    
     
 
 
