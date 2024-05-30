@@ -1,10 +1,21 @@
 # ComputationalPhoto
 
-Computational photography 2024 project 2
-ffmpeg -framerate 30 -i frame\_%d.jpg -vf "scale=trunc(iw/2)*2:trunc(ih/2)*2" stiched_outdoor.mp4
+The project contains the main script `stitch.py` that performs stitching of images and video. The code for the unwrapping is included in `image_cutting_unwrapping.py`. Finally, the project also contains a tranform matrix saved in a .npy file `tr_matrix.py`. This matrix precomputed the "best" transformation matrix for stitching two images for the Xiaomi Mi Sphere 360.
 
-show with always features extraction
-show with preloaded matrix
-show without building
+## Usage
 
-faire requirements.txt
+### Image stitching
+
+For stitching multiple images without using the precomputed matrix:
+python stitch.py image1.jpg image2.jpg...
+
+For stitching multiple images with the precomputed matrix:
+python stitch.py -p image1.jpg image2.jpg...
+
+### Video stitching
+
+For stitching a video without using the precomputed matrix:
+python stitch.py -v video.mp4
+
+For stitching a video with the precomputed matrix:
+python stitch.py -p -v video.mp4

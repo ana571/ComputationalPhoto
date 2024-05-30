@@ -145,28 +145,23 @@ def extract_frames(frames_dir):
 def stitch(filename, video = False, precomputed = False):
 
     img1_full, img2_full = unwrap_and_cut_img(f"{filename}", 190) # here img1 are open cv images so coordinates are reversed
-    # h, w = img1_full.shape
-    
-    # plt.imshow(img2_full)
-    # plt.show()
-    
+
     width = int(img1_full.shape[1]*(190-185)/100)
-    height = img1_full.shape[0]
-  
-    img1_1 = img1_full[:, 0:width, :]
-    img2_1 = img2_full[:, -width:, :]
-    
-    kp1_1, des1_1 = computeDescriptors(img1_1, use_img=True)
-    kp2_1, des2_1 = computeDescriptors(img2_1, use_img=True)
-   
-    src_array_1, dst_array_1, edges_match_1 = computeMatches(des1_1, des2_1, kp1_1, kp2_1, height)
-    
-    src_array = src_array_1
-    dst_array = dst_array_1
-   
     if precomputed:
         tr_matrix = np.load("tr_matrix.npy")
     else:
+        height = img1_full.shape[0]
+    
+        img1_1 = img1_full[:, 0:width, :]
+        img2_1 = img2_full[:, -width:, :]
+        
+        kp1_1, des1_1 = computeDescriptors(img1_1, use_img=True)
+        kp2_1, des2_1 = computeDescriptors(img2_1, use_img=True)
+    
+        src_array_1, dst_array_1, edges_match_1 = computeMatches(des1_1, des2_1, kp1_1, kp2_1, height)
+        
+        src_array = src_array_1
+        dst_array = dst_array_1
         M_skimage = transform.estimate_transform('euclidean', src_array, dst_array)
         tr_matrix = M_skimage.params
     # # print(f"trans - {tr_matrix[0, 2]}")
@@ -179,18 +174,6 @@ def stitch(filename, video = False, precomputed = False):
     tr_matrix[1, 2] = 1
     # np.save("tr_matrix.npy", tr_matrix)
     tr_matrix[0, 2] = (img1_full.shape[1] - width + tr_matrix[0, 2])
-    # print(tr_matrix)
-    
- 
-    
-    # print(tr_matrix)
-
-    # overlapping_width = int(np.ceil(img1.shape[1] - M_skimage.params[0, 2]))
-    # print("overlapping width: ", overlapping_width)
-
-
-    src_array = np.hstack((src_array, np.ones((src_array.shape[0], 1)))).T
-    dst_array = np.hstack((dst_array, np.ones((dst_array.shape[0], 1)))).T
 
    
     img2_full[:, 0:overlapping_width, :] = 0
@@ -228,7 +211,7 @@ def stitch(filename, video = False, precomputed = False):
 
     final_img = final_img[xl:xr+1, yl:yr+1, :]
     
-    if final_img.shape[0] < img1_full.shape[0] or final_img.shape[1] < img1_full.shape[1]: return
+    # if final_img.shape[0] < img1_full.shape[0] or final_img.shape[1] < img1_full.shape[1]: return
     
 
     rgb = np.array(final_img)
@@ -295,22 +278,22 @@ else:
     for file in tqdm(os.listdir(frames_dir)):
         path = os.path.join(frames_dir, file)
         # print(path)
-        try:
-            stitch(path, video=True, precomputed=precomputed)
-        except:
-            pass
-        finally:
-            os.remove(path)
+        
+        stitch(path, video=True, precomputed=precomputed)
+        
+        
+        
+        os.remove(path)
     
     print("mounting video")
     create_video(video_dir, "stitched_video.mp4", 30)
     
     # os.system(f'cd {video_dir} && ffmpeg -framerate 30 -i frame_%d.jpg -vf "scale=trunc(iw/2)*2:trunc(ih/2)*2" stitched_video.mp4')
     remove_non_empty_directory(frames_dir)
-    # for video_file in os.listdir(video_dir):
-    #     path = os.path.join(video_dir, video_file)
-    #     if not path.endswith(".mp4"):
-    #         os.remove(path)
+    for video_file in os.listdir(video_dir):
+        path = os.path.join(video_dir, video_file)
+        if not path.endswith(".mp4"):
+            os.remove(path)
         
     
     
