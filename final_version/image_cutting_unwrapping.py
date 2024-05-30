@@ -1,9 +1,7 @@
-import cv2
 import numpy as np
 import math
 from PIL import Image
-from IPython.display import display
-from skimage.color import rgb2gray
+
 
 def normalize_coordinate(x, y, width_equirect, height_equirect):
     x_prime = 2 * x / width_equirect - 1

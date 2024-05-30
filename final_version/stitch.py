@@ -9,8 +9,44 @@ from skimage.color import rgb2gray, gray2rgb
 from PIL import Image as im 
 import os
 from tqdm import tqdm
+import re
+
+
+def extract_frame_number(filename):
+    match = re.search(r'_(\d+)\.jpg$', filename)
+    return int(match.group(1)) if match else -1
+
+def create_video(image_folder, output_video, fps=30):
+    # Get the list of images in the folder
+    images = [img for img in os.listdir(image_folder) if img.endswith(".jpg")]
+    images.sort(key=extract_frame_number)  # Ensure the images are sorted in the correct order
+
+    if not images:
+        print("No images found in the folder")
+        return
+
+    # Read the first image to get the dimensions
+    first_image_path = os.path.join(image_folder, images[0])
+    frame = cv.imread(first_image_path)
+    height, width, layers = frame.shape
+
+    # Define the codec and create VideoWriter object
+    fourcc = cv.VideoWriter_fourcc(*'mp4v')
+    path = os.path.join(image_folder, output_video)
+    video = cv.VideoWriter(path, fourcc, fps, (width, height))
+
+    for image in tqdm(images):
+        image_path = os.path.join(image_folder, image)
+        frame = cv.imread(image_path)
+        video.write(frame)
+
+    # Release the video writer object
+    video.release()
+
+    print(f"Video saved as {path}")
 
 def remove_non_empty_directory(directory_path):
+    if not os.path.exists(directory_path): return
     # Walk the directory tree
     for root, dirs, files in os.walk(directory_path, topdown=False):
         # Remove all files
@@ -85,7 +121,24 @@ def computeMatches(des1, des2, kp1, kp2, height):
     dst_array = np.array(dst_array)
     return src_array, dst_array, edge_matches
 
+def extract_frames(frames_dir):
+    frame_count = 0
+    while True:
+        # Read the next frame
+        ret, frame = video_capture.read()
+        
+        # If there are no more frames, break the loop
+        if not ret:
+            break
+        
+        # Save the frame as an image
+        cv.imwrite(f"./{frames_dir}/frame_{frame_count}.jpg", frame)
+        
+        # Increment the frame count
+        frame_count += 1
 
+    # Release the video capture object
+    video_capture.release()
 
 
 def stitch(filename, video = False, precomputed = False):
@@ -216,6 +269,7 @@ if arg2 != "-v" and arg2 != "--video":
         
 else:
     video_dir = "./video"
+
     remove_non_empty_directory(video_dir)
     start = 2
     if precomputed: start = 3
@@ -227,26 +281,11 @@ else:
     os.mkdir(frames_dir)
     
     # Initialize a variable to count frames
-    frame_count = 0
+   
 
     print("extracting frames")
-    # # Loop through each frame in the video
-    while True:
-        # Read the next frame
-        ret, frame = video_capture.read()
-        
-        # If there are no more frames, break the loop
-        if not ret:
-            break
-        
-        # Save the frame as an image
-        cv.imwrite(f"./{frames_dir}/frame_{frame_count}.jpg", frame)
-        
-        # Increment the frame count
-        frame_count += 1
-
-    # Release the video capture object
-    video_capture.release()
+    extract_frames(frames_dir)
+    # exit(0)
 
         
         
@@ -263,7 +302,9 @@ else:
             os.remove(path)
     
     print("mounting video")
-    os.system(f'cd {video_dir} && ffmpeg -framerate 30 -i frame_%d.jpg -vf "scale=trunc(iw/2)*2:trunc(ih/2)*2" stitched_video.mp4')
+    create_video(video_dir, "stitched_video.mp4", 30)
+    
+    # os.system(f'cd {video_dir} && ffmpeg -framerate 30 -i frame_%d.jpg -vf "scale=trunc(iw/2)*2:trunc(ih/2)*2" stitched_video.mp4')
     remove_non_empty_directory(frames_dir)
     for video_file in os.listdir(video_dir):
         path = os.path.join(video_dir, video_file)
