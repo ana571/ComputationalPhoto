@@ -20,14 +20,17 @@ def create_video(image_folder, output_video, fps=30):
     first_image_path = os.path.join(image_folder, images[0])
     frame = cv2.imread(first_image_path)
     height, width, layers = frame.shape
-
+    print(height, width)
     # Define the codec and create VideoWriter object
     fourcc = cv2.VideoWriter_fourcc(*'mp4v')
     video = cv2.VideoWriter(os.path.join(image_folder, output_video), fourcc, fps, (width, height))
 
     for image in tqdm(images):
         image_path = os.path.join(image_folder, image)
+        
         frame = cv2.imread(image_path)
+        frame = cv2.resize(frame, (width, height), cv2.INTER_CUBIC)
+       
         video.write(frame)
 
     # Release the video writer object
@@ -36,7 +39,7 @@ def create_video(image_folder, output_video, fps=30):
     print(f"Video saved as {output_video}")
 
 # Example usage
-image_folder = 'merge-cv'  # Replace with the path to your image folder
+image_folder = 'video'  # Replace with the path to your image folder
 output_video = 'stitched.mp4'  # The name of the output video file
 fps = 30  # Frames per second
 

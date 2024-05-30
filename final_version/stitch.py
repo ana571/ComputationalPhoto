@@ -38,6 +38,7 @@ def create_video(image_folder, output_video, fps=30):
     for image in tqdm(images):
         image_path = os.path.join(image_folder, image)
         frame = cv.imread(image_path)
+        frame = cv.resize(frame, (width, height), cv.INTER_CUBIC)
         video.write(frame)
 
     # Release the video writer object
@@ -306,10 +307,10 @@ else:
     
     # os.system(f'cd {video_dir} && ffmpeg -framerate 30 -i frame_%d.jpg -vf "scale=trunc(iw/2)*2:trunc(ih/2)*2" stitched_video.mp4')
     remove_non_empty_directory(frames_dir)
-    for video_file in os.listdir(video_dir):
-        path = os.path.join(video_dir, video_file)
-        if not path.endswith(".mp4"):
-            os.remove(path)
+    # for video_file in os.listdir(video_dir):
+    #     path = os.path.join(video_dir, video_file)
+    #     if not path.endswith(".mp4"):
+    #         os.remove(path)
         
     
     

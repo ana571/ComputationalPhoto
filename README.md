@@ -6,3 +6,5 @@ ffmpeg -framerate 30 -i frame\_%d.jpg -vf "scale=trunc(iw/2)*2:trunc(ih/2)*2" st
 show with always features extraction
 show with preloaded matrix
 show without building
+
+faire requirements.txt
