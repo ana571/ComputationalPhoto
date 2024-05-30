@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # This file may be used to create an environment using:
 # $ conda create --name <env> --file <this file>
 # platform: win-64
@@ -55,3 +56,24 @@ win_inet_pton=1.1.0=py39haa95532_0
 wincertstore=0.2=py39haa95532_2
 yaml=0.2.5=he774522_0
 zipp=3.19.0=pypi_0
+=======
+contourpy==1.2.1
+cycler==0.12.1
+fonttools==4.52.4
+imageio==2.34.1
+kiwisolver==1.4.5
+lazy_loader==0.4
+matplotlib==3.9.0
+networkx==3.3
+numpy==1.26.4
+opencv-python==4.9.0.80
+packaging==24.0
+pillow==10.3.0
+pyparsing==3.1.2
+python-dateutil==2.9.0.post0
+scikit-image==0.23.2
+scipy==1.13.1
+six==1.16.0
+tifffile==2024.5.22
+tqdm==4.66.4
+>>>>>>> a0923a6e61de6fadb9e0b9db5bf1f79a3c201609

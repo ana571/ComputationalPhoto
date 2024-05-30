@@ -1,2 +1,5 @@
 *.jpg
+*.JPG
 *.mp4
+*.MP4
+/env
