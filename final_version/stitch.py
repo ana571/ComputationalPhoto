@@ -122,12 +122,13 @@ def computeMatches(des1, des2, kp1, kp2, height):
     dst_array = np.array(dst_array)
     return src_array, dst_array, edge_matches
 
-def extract_frames(frames_dir):
+def extract_frames(frames_dir, video_path):
+    video_capture = cv.VideoCapture(video_path)
+
     frame_count = 0
     while True:
         # Read the next frame
         ret, frame = video_capture.read()
-        
         # If there are no more frames, break the loop
         if not ret:
             break
@@ -269,24 +270,21 @@ if arg2 != "-v" and arg2 != "--video":
         stitch(sys.argv[i], precomputed=precomputed)
         
 else:
-    video_dir = "./video"
+    video_dir = "video"
 
     remove_non_empty_directory(video_dir)
     start = 2
     if precomputed: start = 3
     video_path = sys.argv[start]
-    video_capture = cv.VideoCapture(video_path)
-    frames_dir = "./frames"
-    if os.path.exists(frames_dir): 
-        remove_non_empty_directory(frames_dir)
+    frames_dir = "frames"
+    remove_non_empty_directory(frames_dir)
     os.mkdir(frames_dir)
     
     # Initialize a variable to count frames
    
-
     print("extracting frames")
-    extract_frames(frames_dir)
-    # exit(0)
+    extract_frames(frames_dir, video_path)
+    # # exit(0)
 
         
         
@@ -307,10 +305,10 @@ else:
     
     # os.system(f'cd {video_dir} && ffmpeg -framerate 30 -i frame_%d.jpg -vf "scale=trunc(iw/2)*2:trunc(ih/2)*2" stitched_video.mp4')
     remove_non_empty_directory(frames_dir)
-    # for video_file in os.listdir(video_dir):
-    #     path = os.path.join(video_dir, video_file)
-    #     if not path.endswith(".mp4"):
-    #         os.remove(path)
+    for video_file in os.listdir(video_dir):
+        path = os.path.join(video_dir, video_file)
+        if not path.endswith(".mp4"):
+            os.remove(path)
         
     
     
