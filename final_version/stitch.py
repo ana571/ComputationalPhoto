@@ -165,7 +165,6 @@ def stitch(filename, video = False, precomputed = False):
         dst_array = dst_array_1
         M_skimage = transform.estimate_transform('euclidean', src_array, dst_array)
         tr_matrix = M_skimage.params
-    # # print(f"trans - {tr_matrix[0, 2]}")
     
     overlapping_width = int(width - tr_matrix[0, 2]) + 1
     tr_matrix[0, 0] = 1
@@ -173,7 +172,6 @@ def stitch(filename, video = False, precomputed = False):
     tr_matrix[1, 0] = 0
     tr_matrix[1, 1] = 1
     tr_matrix[1, 2] = 1
-    # np.save("tr_matrix.npy", tr_matrix)
     tr_matrix[0, 2] = (img1_full.shape[1] - width + tr_matrix[0, 2])
 
    
@@ -204,20 +202,16 @@ def stitch(filename, video = False, precomputed = False):
     final_img = final_img.astype(np.uint8)
 
 
-
     x, y, z = np.nonzero(final_img)
     xl,xr = x.min(),x.max()
     yl,yr = y.min(),y.max()
 
 
     final_img = final_img[xl:xr+1, yl:yr+1, :]
-    
-    # if final_img.shape[0] < img1_full.shape[0] or final_img.shape[1] < img1_full.shape[1]: return
-    
+        
 
     rgb = np.array(final_img)
-    # rgb[:, :, 0] = final_img[:, :, 2]
-    # rgb[:, :, 2] = final_img[:, :, 0]
+
 
     rgb = rgb.astype(np.uint8)
     name, ext = os.path.splitext(os.path.basename(filename))
@@ -230,8 +224,6 @@ def stitch(filename, video = False, precomputed = False):
         if not os.path.exists("./stitched"):
             os.mkdir("stitched")
         im.fromarray(rgb).save(f"./stitched/{name}_stitched.jpg")
-
-
 
 
 arg1 = sys.argv[1]
@@ -267,26 +259,18 @@ else:
    
     print("extracting frames")
     extract_frames(frames_dir, video_path)
-    # # exit(0)
 
-        
         
     print("stitching frames")
 
     for file in tqdm(os.listdir(frames_dir)):
-        path = os.path.join(frames_dir, file)
-        # print(path)
-        
+        path = os.path.join(frames_dir, file)        
         stitch(path, video=True, precomputed=precomputed)
-        
-        
-        
         os.remove(path)
     
     print("mounting video")
     create_video(video_dir, "stitched_video.mp4", 30)
     
-    # os.system(f'cd {video_dir} && ffmpeg -framerate 30 -i frame_%d.jpg -vf "scale=trunc(iw/2)*2:trunc(ih/2)*2" stitched_video.mp4')
     remove_non_empty_directory(frames_dir)
     for video_file in os.listdir(video_dir):
         path = os.path.join(video_dir, video_file)
