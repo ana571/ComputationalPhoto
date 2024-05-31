@@ -4,6 +4,11 @@ The project contains the main script `stitch.py` that performs stitching of imag
 
 ## Usage
 
+### Installation
+
+Install the packages:
+pip install -r requirements.txt
+
 ### Image stitching
 
 For stitching multiple images without using the precomputed matrix:

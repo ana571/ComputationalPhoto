@@ -102,7 +102,6 @@ def project_image(fisheye_image, fov):
 
     # Convert meshgrid coordinates to fish-eye coordinates
     x_pfish, y_pfish = fish2sphere(xx, yy, width, height, aperture, width_equirect, height_equirect)
-    # print(x_pfish.shape)
 
     # Clip coordinates to ensure they fall within the bounds of the fisheye image
     x_pfish_clipped = np.clip(x_pfish, 0, width - 1)
@@ -110,10 +109,6 @@ def project_image(fisheye_image, fov):
 
     # Map the pixel values from fisheye image to the unwrapped image
     unwrapped_image = fisheye_image[y_pfish_clipped.astype(int), x_pfish_clipped.astype(int)][:, width_equirect//4:3*width_equirect//4, :]
-    
-    # no_info_coords = np.argwhere(np.all(unwrapped_image == 0, axis=-1))
-    # unwrapped_image =  crop_non_zero_region(unwrapped_image)
-    # print(no_info_coords.shape)
 
     # Save the unwrapped image
     return unwrapped_image
@@ -123,18 +118,9 @@ def split_image(input_image_path):
     # Open the image
     image = Image.open(input_image_path)
 
-
     # Get the width and height of the image
     width, height = image.size
 
-# Calculate new dimensions by dividing by 2
-
-
-# Use the resize method to downsample the image
-    # image = image.resize((width//2, height//2 ), Image.ANTIALIAS)
-    # width, height = image.size
-
-    # print(f"new size: {image.size}")
     # Calculate the midpoint
     midpoint = width // 2
 
@@ -149,14 +135,8 @@ def split_image(input_image_path):
 
 def unwrap_and_cut_img(input_image_path, fov):
     # Split the image into left and right halves
-   
     left_half, right_half = split_image(input_image_path)
-
     unwrapped_left = project_image(left_half, fov)
     unwrapped_right = project_image(right_half, fov)
 
-    # # # crop left one
-    # left_img_array = crop_middle_half(left_final_path, output_left_path)
-    # # crop right one
-    # right_img_array = crop_middle_half(right_final_path, output_right_path)
     return unwrapped_left, unwrapped_right
