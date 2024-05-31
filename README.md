@@ -1,6 +1,6 @@
 # ComputationalPhoto
 
-The project contains the main script `stitch.py` that performs stitching of images and video. The code for the unwrapping is included in `image_cutting_unwrapping.py`. Finally, the project also contains a tranform matrix saved in a .npy file `tr_matrix.py`. This matrix precomputed the "best" transformation matrix for stitching two images for the Xiaomi Mi Sphere 360.
+The project contains the main script `stitch.py` that performs stitching of images and video. The code for the unwrapping is included in `image_cutting_unwrapping.py`. Finally, the project also contains a tranform matrix saved in a .npy file `tr_matrix.py` as well as a `requirements.txt` file used to install all the necessary python packages. This matrix precomputed the "best" transformation matrix for stitching two images for the Xiaomi Mi Sphere 360.
 
 ## Usage
 
